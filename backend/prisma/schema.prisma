@@ -1,0 +1,134 @@
+// backend/prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Destination {
+  RAILWAY_STATION
+  BUS_STAND
+  CITY_CENTER
+  AIRPORT
+}
+
+enum Direction {
+  FROM_CAMPUS
+  TO_CAMPUS
+}
+
+enum RideStatus {
+  OPEN
+  FULL
+  DEPARTED
+  CANCELLED
+}
+
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  name          String
+  picture       String?
+  phone         String?
+
+  thumbsUp      Int      @default(0)
+  thumbsDown    Int      @default(0)
+
+  postedRides   Ride[]              @relation("RidePoster")
+  intents       Intent[]
+  ridesJoined   RideParticipant[]
+  ratingsGiven  Rating[]            @relation("RatingFrom")
+  ratingsRecvd  Rating[]            @relation("RatingTo")
+
+  createdAt     DateTime @default(now())
+  lastSeenAt    DateTime @default(now())
+}
+
+model Ride {
+  id              String      @id @default(cuid())
+  posterId        String
+  poster          User        @relation("RidePoster", fields: [posterId], references: [id])
+
+  direction       Direction
+  otherPoint      Destination
+  departureTime   DateTime
+  seatsTotal      Int
+  seatsAvailable  Int
+  farePerHead     Int
+  notes           String?
+
+  status          RideStatus  @default(OPEN)
+
+  participants    RideParticipant[]
+  matches         Match[]
+
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  deletedAt       DateTime?
+
+  @@index([status, departureTime])
+  @@index([direction, otherPoint, departureTime])
+}
+
+model RideParticipant {
+  id        String   @id @default(cuid())
+  rideId    String
+  ride      Ride     @relation(fields: [rideId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  joinedAt  DateTime @default(now())
+
+  @@unique([rideId, userId])
+}
+
+model Intent {
+  id              String      @id @default(cuid())
+  userId          String
+  user            User        @relation(fields: [userId], references: [id])
+
+  direction       Direction
+  otherPoint      Destination
+  earliestTime    DateTime
+  latestTime      DateTime
+  maxFare         Int?
+
+  active          Boolean     @default(true)
+  matches         Match[]
+
+  createdAt       DateTime    @default(now())
+
+  @@index([active, direction, otherPoint, earliestTime, latestTime])
+}
+
+model Match {
+  id               String   @id @default(cuid())
+  rideId           String
+  ride             Ride     @relation(fields: [rideId], references: [id], onDelete: Cascade)
+  intentId         String
+  intent           Intent   @relation(fields: [intentId], references: [id], onDelete: Cascade)
+
+  posterConfirmed  Boolean  @default(false)
+  seekerConfirmed  Boolean  @default(false)
+
+  createdAt        DateTime @default(now())
+
+  @@unique([rideId, intentId])
+}
+
+model Rating {
+  id          String   @id @default(cuid())
+  fromUserId  String
+  fromUser    User     @relation("RatingFrom", fields: [fromUserId], references: [id])
+  toUserId    String
+  toUser      User     @relation("RatingTo", fields: [toUserId], references: [id])
+  rideId      String
+
+  thumbsUp    Boolean
+  createdAt   DateTime @default(now())
+
+  @@unique([fromUserId, toUserId, rideId])
+}
