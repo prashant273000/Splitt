@@ -59,7 +59,11 @@ function UserAvatar({ user }) {
 }
 
 function RatingBadge({ thumbsUp, thumbsDown }) {
-  return <span className="text-sm text-gray-500">+{thumbsUp} / -{thumbsDown}</span>;
+  return (
+    <span className="text-sm text-gray-500">
+      +{thumbsUp} / -{thumbsDown}
+    </span>
+  );
 }
 
 function WhatsAppLink({ phone }) {
@@ -121,7 +125,10 @@ function PosterMatchCard({ match, onConfirm, onReject, activeMatchId, confirmErr
         <UserAvatar user={match.otherUser} />
         <div className="min-w-0">
           <div className="font-medium truncate">{match.otherUser.name}</div>
-          <RatingBadge thumbsUp={match.otherUser.thumbsUp} thumbsDown={match.otherUser.thumbsDown} />
+          <RatingBadge
+            thumbsUp={match.otherUser.thumbsUp}
+            thumbsDown={match.otherUser.thumbsDown}
+          />
         </div>
       </div>
       <div className="flex-shrink-0">
@@ -179,7 +186,15 @@ function SeekerMatchCard({ match, onConfirm, onReject, activeMatchId, confirmErr
   );
 }
 
-function RideSection({ ride, matches, onConfirm, onReject, onCancel, activeMatchId, confirmError }) {
+function RideSection({
+  ride,
+  matches,
+  onConfirm,
+  onReject,
+  onCancel,
+  activeMatchId,
+  confirmError,
+}) {
   const filledSeats = ride.seatsTotal - ride.seatsAvailable;
   const sorted = sortMatches(matches);
 
@@ -237,7 +252,15 @@ function RideSection({ ride, matches, onConfirm, onReject, onCancel, activeMatch
   );
 }
 
-function IntentSection({ intent, matches, onConfirm, onReject, onCancel, activeMatchId, confirmError }) {
+function IntentSection({
+  intent,
+  matches,
+  onConfirm,
+  onReject,
+  onCancel,
+  activeMatchId,
+  confirmError,
+}) {
   const sorted = sortMatches(matches);
 
   return (
@@ -345,9 +368,7 @@ export default function Home() {
       await confirmMutation.mutateAsync(matchId);
     } catch (err) {
       setConfirmError(
-        err.message.toLowerCase().includes('full')
-          ? 'This ride just filled up.'
-          : err.message,
+        err.message.toLowerCase().includes('full') ? 'This ride just filled up.' : err.message,
       );
     } finally {
       setActiveMatchId(null);
@@ -376,13 +397,13 @@ export default function Home() {
   if (ridesLoading || matchesLoading) return <div className="p-8 text-gray-500">Loading...</div>;
 
   const posterMatchesByRide = new Map();
-  for (const m of matches.filter((m) => m.myRole === 'poster')) {
+  for (const m of matches.filter((match) => match.myRole === 'poster')) {
     if (!posterMatchesByRide.has(m.rideId)) posterMatchesByRide.set(m.rideId, []);
     posterMatchesByRide.get(m.rideId).push(m);
   }
 
   const intentMatchMap = new Map();
-  for (const m of matches.filter((m) => m.myRole === 'seeker')) {
+  for (const m of matches.filter((match) => match.myRole === 'seeker')) {
     if (!intentMatchMap.has(m.intentId)) intentMatchMap.set(m.intentId, []);
     intentMatchMap.get(m.intentId).push(m);
   }
@@ -396,8 +417,7 @@ export default function Home() {
     .filter(([intentId]) => !intents.some((i) => i.id === intentId))
     .flatMap(([, ms]) => ms);
 
-  const isCancelling =
-    cancelRideMutation.isPending || cancelIntentMutation.isPending;
+  const isCancelling = cancelRideMutation.isPending || cancelIntentMutation.isPending;
 
   const header = (
     <div className="flex items-center justify-between mb-6">

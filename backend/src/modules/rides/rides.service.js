@@ -37,15 +37,14 @@ async function getRideById(rideId, userId) {
       poster: { select: { id: true, name: true, picture: true, thumbsUp: true, thumbsDown: true } },
       participants: {
         include: {
-          user: { select: { id: true, name: true, picture: true, thumbsUp: true, thumbsDown: true } },
+          user: {
+            select: { id: true, name: true, picture: true, thumbsUp: true, thumbsDown: true },
+          },
         },
       },
       matches: {
         where: {
-          OR: [
-            { ride: { posterId: userId } },
-            { intent: { userId } },
-          ],
+          OR: [{ ride: { posterId: userId } }, { intent: { userId } }],
         },
         select: {
           id: true,
@@ -117,15 +116,15 @@ async function cancelRide(rideId, userId) {
     });
 
     // Collect seekerUserIds before deleting matches — needed for SSE notifications after commit.
-    const cancelledMatches = ride.matches.map((m) => ({
+    const matchData = ride.matches.map((m) => ({
       matchId: m.id,
       seekerUserId: m.intent.userId,
     }));
-    const participantIds = ride.participants.map((p) => p.userId);
+    const pIds = ride.participants.map((p) => p.userId);
 
     await tx.match.deleteMany({ where: { rideId } });
 
-    return { cancelledMatches, participantIds };
+    return { cancelledMatches: matchData, participantIds: pIds };
   });
 
   for (const { matchId, seekerUserId } of cancelledMatches) {
@@ -140,23 +139,23 @@ async function cancelRide(rideId, userId) {
 
 async function joinRide(rideId, userId) {
   const { ride, allParticipantIds } = await prisma.$transaction(async (tx) => {
-    const ride = await tx.ride.findUnique({
+    const txRide = await tx.ride.findUnique({
       where: { id: rideId },
       include: { participants: { select: { userId: true } } },
     });
 
-    if (!ride || ride.deletedAt !== null) {
+    if (!txRide || txRide.deletedAt !== null) {
       const err = new Error('Ride not found');
       err.status = 404;
       throw err;
     }
-    if (ride.status !== 'OPEN') {
+    if (txRide.status !== 'OPEN') {
       const err = new Error('Ride is not open');
       err.status = 409;
       throw err;
     }
 
-    const alreadyJoined = ride.participants.some((p) => p.userId === userId);
+    const alreadyJoined = txRide.participants.some((p) => p.userId === userId);
     if (alreadyJoined) {
       const err = new Error('Already a participant');
       err.status = 409;
@@ -183,8 +182,8 @@ async function joinRide(rideId, userId) {
     }
     const finalRide = await tx.ride.findUnique({ where: { id: rideId } });
 
-    const allParticipantIds = [...ride.participants.map((p) => p.userId), userId];
-    return { ride: finalRide, allParticipantIds };
+    const participantList = [...txRide.participants.map((p) => p.userId), userId];
+    return { ride: finalRide, allParticipantIds: participantList };
   });
 
   for (const id of allParticipantIds) {

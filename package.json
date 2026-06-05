@@ -3,7 +3,10 @@
   "private": true,
   "version": "0.1.0",
   "description": "A better way to share autos out of campus.",
-  "workspaces": ["frontend", "backend"],
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
   "scripts": {
     "dev:frontend": "npm --workspace frontend run dev",
     "dev:backend": "npm --workspace backend run dev",
@@ -12,18 +15,25 @@
     "prepare": "husky install"
   },
   "devDependencies": {
+    "@commitlint/cli": "^19.0.0",
+    "@commitlint/config-conventional": "^19.0.0",
     "eslint": "^9.0.0",
-    "prettier": "^3.0.0",
+    "eslint-plugin-react": "^7.37.5",
     "husky": "^9.0.0",
     "lint-staged": "^15.0.0",
-    "@commitlint/cli": "^19.0.0",
-    "@commitlint/config-conventional": "^19.0.0"
+    "prettier": "^3.0.0"
   },
   "lint-staged": {
-    "*.{js,jsx,json,md,css}": ["prettier --write"],
-    "*.{js,jsx}": ["eslint --fix"]
+    "*.{js,jsx,json,md,css}": [
+      "prettier --write"
+    ],
+    "*.{js,jsx}": [
+      "eslint --fix"
+    ]
   },
   "commitlint": {
-    "extends": ["@commitlint/config-conventional"]
+    "extends": [
+      "@commitlint/config-conventional"
+    ]
   }
 }
