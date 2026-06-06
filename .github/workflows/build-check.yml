@@ -1,0 +1,44 @@
+name: Core CI Pipeline
+
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ]
+
+jobs:
+  validate-and-build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Check Code Formatting (Prettier)
+        # This ensures all code matches the same style (spaces, quotes, etc.)
+        run: npx prettier --check "frontend/src/**/*.{js,jsx}" "backend/src/**/*.js"
+
+      - name: Run Linter
+        # Catches bad syntax, unused variables, and logical errors
+        run: npm run lint --if-present
+
+      - name: Validate Prisma Schema
+        # Ensures the database relationships and syntax are correct
+        run: npx prisma validate --schema=backend/prisma/schema.prisma
+
+      - name: Test Prisma Client Generation
+        # Ensures Prisma can successfully build the client from the schema
+        run: npx prisma generate --schema=backend/prisma/schema.prisma
+
+      - name: Build Frontend
+        # Compiles the Vite React app to guarantee it actually builds
+        run: npm --workspace frontend run build
