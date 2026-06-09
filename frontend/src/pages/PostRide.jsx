@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useRequireAuth } from '../features/auth/hooks';
 import { useCreateRide } from '../features/rides/hooks';
@@ -19,6 +19,10 @@ export default function PostRide() {
   const navigate = useNavigate();
   const { isLoading: authLoading } = useRequireAuth();
   const { mutateAsync, isPending } = useCreateRide();
+
+  useEffect(() => {
+    document.title = 'Post a ride · Splitt';
+  }, []);
 
   if (authLoading) return <div className="p-8 text-gray-500">Loading...</div>;
 

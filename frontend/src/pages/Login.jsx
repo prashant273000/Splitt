@@ -10,6 +10,10 @@ export default function Login() {
   const queryClient = useQueryClient();
   const [googleError, setGoogleError] = useState('');
 
+  useEffect(() => {
+    document.title = 'Sign in · Splitt';
+  }, []);
+
   const { data: user, isLoading } = useQuery({
     queryKey: ['me'],
     queryFn: me,

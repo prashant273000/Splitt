@@ -313,6 +313,10 @@ function IntentSection({
 export default function Home() {
   const queryClient = useQueryClient();
 
+  useEffect(() => {
+    document.title = 'Splitt';
+  }, []);
+
   const [cancelTarget, setCancelTarget] = useState(null);
   const [activeMatchId, setActiveMatchId] = useState(null);
   const [confirmError, setConfirmError] = useState('');
