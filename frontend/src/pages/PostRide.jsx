@@ -55,7 +55,7 @@ export default function PostRide() {
       departureTime: new Date(departureTime).toISOString(),
       seatsTotal: Number(seatsTotal),
       farePerHead: Number(farePerHead),
-      notes: notes.trim() || null,
+      notes: notes.trim() || undefined,
     };
 
     try {

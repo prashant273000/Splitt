@@ -56,7 +56,7 @@ export default function PostIntent() {
       otherPoint,
       earliestTime: new Date(earliestTime).toISOString(),
       latestTime: new Date(latestTime).toISOString(),
-      maxFare: maxFare ? Number(maxFare) : null,
+      maxFare: maxFare ? Number(maxFare) : undefined,
     };
 
     try {
